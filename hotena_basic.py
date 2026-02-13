@@ -4,7 +4,6 @@
 from pathlib import Path
 import random
 import pandas as pd
-import os
 import streamlit as st
 import unicodedata
 from supabase import create_client
@@ -376,28 +375,43 @@ if st.session_state.get("_scroll_top_once"):
     st.session_state["_scroll_top_nonce"] = st.session_state.get("_scroll_top_nonce", 0) + 1
     scroll_to_top(nonce=st.session_state["_scroll_top_nonce"])
 
+    
 # ============================================================
-# ✅ Cookies
+# ✅ Secrets helper (Cloud Run: env 우선 / Streamlit: secrets 보조)
 # ============================================================
+import os
 
+def get_secret(key: str, default=None):
+    v = os.environ.get(key)
+    if v:
+        return v
+    try:
+        return st.secrets.get(key, default)
+    except Exception:
+        return default
+
+# ============================================================
+# ✅ Supabase 연결 (env 우선)
+# ============================================================
+SUPABASE_URL = get_secret("SUPABASE_URL")
+SUPABASE_ANON_KEY = get_secret("SUPABASE_ANON_KEY")
 COOKIE_PASSWORD = get_secret("COOKIE_PASSWORD", "change-me-please")
 
+if not SUPABASE_URL or not SUPABASE_ANON_KEY:
+    st.error("Supabase 설정이 없습니다. (SUPABASE_URL / SUPABASE_ANON_KEY)")
+    st.stop()
+
+sb = create_client(SUPABASE_URL, SUPABASE_ANON_KEY)
+
+# ============================================================
+# ✅ Cookies (한 번만 생성)
+# ============================================================
 cookies = EncryptedCookieManager(
-    prefix="hotena_basic_app_",  # 추천: 앱별 고유 prefix
+    prefix="hatena_jlpt/",
     password=COOKIE_PASSWORD,
 )
 if not cookies.ready():
     st.info("잠깐만요! 곧 시작할게요🙂")
-    st.stop()
-    
-# ============================================================
-# ✅ Supabase 연결
-# ============================================================
-SUPABASE_URL = get_secret("SUPABASE_URL")
-SUPABASE_ANON_KEY = get_secret("SUPABASE_ANON_KEY")
-
-if not SUPABASE_URL or not SUPABASE_ANON_KEY:
-    st.error("Supabase 설정이 없습니다. (SUPABASE_URL / SUPABASE_ANON_KEY)")
     st.stop()
 # ============================================================
 # ✅ 상수/설정
@@ -2594,5 +2608,6 @@ if st.session_state.submitted:
     show_naver_talk = (SHOW_NAVER_TALK == "N") or is_admin()
     if show_naver_talk:
         render_naver_talk()
+
 
 
