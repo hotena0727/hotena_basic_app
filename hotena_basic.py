@@ -380,35 +380,25 @@ if st.session_state.get("_scroll_top_once"):
 # ✅ Cookies
 # ============================================================
 
-COOKIE_PASSWORD = os.environ.get("COOKIE_PASSWORD") or st.secrets.get("COOKIE_PASSWORD", "change-me-please")
+COOKIE_PASSWORD = get_secret("COOKIE_PASSWORD", "change-me-please")
 
 cookies = EncryptedCookieManager(
-    prefix="hatena_kanji_",
+    prefix="hotena_basic_app_",  # 추천: 앱별 고유 prefix
     password=COOKIE_PASSWORD,
 )
 if not cookies.ready():
     st.info("잠깐만요! 곧 시작할게요🙂")
     st.stop()
-
-if "SUPABASE_URL" not in st.secrets or "SUPABASE_ANON_KEY" not in st.secrets:
-    st.error("Supabase Secrets가 설정되지 않았습니다. (SUPABASE_URL / SUPABASE_ANON_KEY)")
-    st.stop()
-
+    
 # ============================================================
 # ✅ Supabase 연결
 # ============================================================
 SUPABASE_URL = get_secret("SUPABASE_URL")
 SUPABASE_ANON_KEY = get_secret("SUPABASE_ANON_KEY")
-COOKIE_PASSWORD = get_secret("COOKIE_PASSWORD", "change-me-please")
 
 if not SUPABASE_URL or not SUPABASE_ANON_KEY:
     st.error("Supabase 설정이 없습니다. (SUPABASE_URL / SUPABASE_ANON_KEY)")
     st.stop()
-
-cookies = EncryptedCookieManager(
-    prefix="hatena_jlpt/",
-    password=COOKIE_PASSWORD
-)
 # ============================================================
 # ✅ 상수/설정
 # ============================================================
@@ -2604,4 +2594,5 @@ if st.session_state.submitted:
     show_naver_talk = (SHOW_NAVER_TALK == "N") or is_admin()
     if show_naver_talk:
         render_naver_talk()
+
 
