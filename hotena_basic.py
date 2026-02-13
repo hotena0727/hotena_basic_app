@@ -379,9 +379,12 @@ if st.session_state.get("_scroll_top_once"):
 # ============================================================
 # ✅ Cookies
 # ============================================================
+
+COOKIE_PASSWORD = os.environ.get("COOKIE_PASSWORD") or st.secrets.get("COOKIE_PASSWORD", "change-me-please")
+
 cookies = EncryptedCookieManager(
     prefix="hatena_kanji_",
-    password=st.secrets["COOKIE_PASSWORD"],
+    password=COOKIE_PASSWORD,
 )
 if not cookies.ready():
     st.info("잠깐만요! 곧 시작할게요🙂")
@@ -2601,3 +2604,4 @@ if st.session_state.submitted:
     show_naver_talk = (SHOW_NAVER_TALK == "N") or is_admin()
     if show_naver_talk:
         render_naver_talk()
+
